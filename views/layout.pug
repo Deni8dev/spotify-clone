@@ -1,0 +1,22 @@
+doctype html
+html
+  head
+    title Spotify Clone
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='https://unpkg.com/simpledotcss/simple.min.css')
+  body
+
+    if userInfo
+      div.profile-btn
+        img(src= userInfo.image)
+        div= userInfo.display_name
+        svg(data-slot='icon' fill='currentColor' viewbox='0 0 16 16' xmlns='http://www.w3.org/2000/svg' aria-hidden='true')
+          path(clip-rule='evenodd' fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z')
+    else
+      button.login-btn(onclick='window.location.href = "/login"', aria-label='Log in with Spotify') Log in with Spotify
+
+    h1.text-center Spotify Clone
+
+    block content
+
+script(src='/javascripts/scripts.js')

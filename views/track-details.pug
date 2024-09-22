@@ -1,0 +1,12 @@
+extends layout
+
+block content
+
+    img(src=image, alt=name)
+    h3= name
+    div
+        span= artists + ' • ' + album
+        span= ' • '
+        a(href=href, target='_blank') Spotify
+    audio(controls)
+        source(src=preview_url, type='audio/mpeg')
