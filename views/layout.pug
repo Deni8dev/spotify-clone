@@ -15,7 +15,8 @@ html
     else
       button.login-btn(onclick='window.location.href = "/login"', aria-label='Log in with Spotify') Log in with Spotify
 
-    h1.text-center Spotify Clone
+    if error
+      div.alert.error= error
 
     block content
 

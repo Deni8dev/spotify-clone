@@ -1,0 +1,15 @@
+include pagination
+
+if tracks
+    +pagination(query, tracks.previous, tracks.next, tracks.offset, tracks.limit, tracks.total)
+    ul.item-list
+      each item in tracks.items
+          li
+              div.item-info.track-info
+                  img(src=item.image, alt=item.name)
+                  div
+                      strong
+                          a(href='/tracks/' + item.id, title='Go to details')= item.name
+                      span= item.artists + ' • ' + item.album
+              audio(controls)
+                  source(src=item.preview_url, type='audio/mpeg')

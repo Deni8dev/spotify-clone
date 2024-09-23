@@ -1,46 +1,78 @@
-// curl --request GET \
-//   --url 'https://api.spotify.com/v1/search?q=remaster%2520track%3ADoxy%2520artist%3AMiles%2520Davis&type=album' \
-//   --header 'Authorization: Bearer 1POdFZRZbvb...qqillRxMr2z'
+const {
+  spotifyApiHost, spotifyAccountsHost, spotifyCallbackUri,
+  spotifyClientId,
+  spotifyClientSecret
+} = require('../config');
+const { UnauthorizedError } = require('./exceptions');
 
-const getAccessToken = async () => {
-  const { clientId, clientSecret } = config.spotify;
-  const url = 'https://accounts.spotify.com/api/token';
-  const options = {
-    method: 'POST',
-    url,
-    form: {
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret
-    }
-  };
-
-  return new Promise((resolve, reject) => {
-
-    fetch.config.headers['Authorization'] = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`;
-
-    fetch(url, options)
-
-    request(options, (error, response, body) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(JSON.parse(body).access_token);
-      }
-    });
-  });
-};
+const AUTH_TOKEN = new Buffer
+  .from(`${spotifyClientId}:${spotifyClientSecret}`)
+  .toString('base64');
 
 module.exports = {
-  getAccessToken,
+
+  authorizeSpotify: async (spotifyCode) => {
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${AUTH_TOKEN}`
+      },
+      body: `grant_type=authorization_code&code=${spotifyCode}&redirect_uri=${spotifyCallbackUri}`,
+      json: true
+    };
+
+    const response = await fetch(`${spotifyAccountsHost}/api/token`, options)
+
+    if (!response.ok) {
+      throw new UnauthorizedError('Failed to get access tokens');
+    }
+
+    const data = await response.json();
+    console.log('Got access and refresh tokens:', data);
+
+    return data;
+  },
+
+  refreshSpotifyToken: async (refresh_token) => {
+
+    console.log('Refreshing token', refresh_token);
+
+    const options = {
+      method: 'POST',
+      url: `${spotifyAccountsHost}/api/token`,
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${AUTH_TOKEN}`
+      },
+      form: {
+        grant_type: 'refresh_token',
+        refresh_token
+      },
+      json: true
+    };
+
+    const response = await fetch(`${spotifyAccountsHost}/api/token`, options);
+
+    if (!response.ok) {
+      throw new UnauthorizedError('Failed to refresh access token');
+    }
+
+    const data = await response.json();
+    console.log('Refreshed access and refresh tokens:', data);
+
+    return data;
+  },
+
   getUserInfo: async (access_token) => {
 
     const options = { headers: { 'Authorization': 'Bearer ' + access_token } };
-    const response = await fetch('https://api.spotify.com/v1/me', options);
+    const response = await fetch(`${spotifyApiHost}/v1/me`, options);
     const { error, display_name, images } = await response.json();
 
-    if (error && error.message === 'The access token expired')
-      throw new Error(error.message);
+    if (error && error.status === 401)
+      throw new UnauthorizedError(error.message);
 
     return {
       display_name,

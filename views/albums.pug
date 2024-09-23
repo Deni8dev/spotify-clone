@@ -1,0 +1,13 @@
+include pagination
+
+if albums
+    +pagination(query, albums.previous, albums.next, albums.offset, albums.limit, albums.total)
+    ul.item-list
+      each item in albums.items
+          li
+              div.item-info.album-info
+                  img(src=item.image, alt=item.name)
+                  div
+                      strong
+                          a(href='/albums/' + item.id, title='Go to details')= item.name
+                      span= item.artists + ' • ' + item.year

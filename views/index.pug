@@ -2,49 +2,8 @@ extends layout
 
 block content
 
-  form.search-form(action='/', method='post')
-    input#queryInput(name='query', placeholder='Artist, Album, or Song', value=query)
+  form.search-form(action='/', method='get')
+    input#queryInput(name='query', placeholder='Song, Artist or Album', value=query)
     button(type='submit') Search
-    if searchError
-      div.error= searchError
 
-  div
-    h2.mb-0 Tracks
-    if tracks
-      div.page-description.pl-1= tracks.pageDescription
-      ul.item-list
-        each item in tracks.items
-          li
-            div.item-info.track-info
-              img(src=item.image, alt=item.name)
-              div
-                strong
-                  a(href='/tracks/' + item.id, title='Go to details')= item.name
-                span= item.artists + ' • ' + item.album
-            audio(controls)
-              source(src=item.preview_url, type='audio/mpeg')
-
-    h2.mb-0 Artists
-    if artists
-      div.page-description.pl-1= artists.pageDescription
-      ul.item-list
-        each item in artists.items
-          li
-            div.item-info.artist-info
-              div
-                strong
-                  a(href='/artists/' + item.id, title='Go to details')= item.name
-                span= item.followers + ' followers'
-
-    h2.mb-0 Albums
-    if albums
-      div.page-description.pl-1= albums.pageDescription
-      ul.item-list
-        each item in albums.items
-          li
-            div.item-info.album-info
-              img(src=item.image, alt=item.name)
-              div
-                strong
-                  a(href='/albums/' + item.id, title='Go to details')= item.name
-                span= item.artists + ' • ' + item.year
+  include results

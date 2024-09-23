@@ -7,6 +7,10 @@ body {
     font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
+input, button {
+    margin: 0 !important;
+}
+
 .search-form {
     display: flex;
     justify-content: center;
@@ -36,7 +40,7 @@ body {
 }
 
 .profile-btn, .login-btn {
-    position: absolute;
+    position: fixed;
     right: 2rem;
     top: 2rem;
 }
@@ -95,18 +99,24 @@ svg {
     height: 1rem;
 }
 
-.error {
-    padding: 8px;
-    font-size: 14px;
-    color: var(--error);
-}
-
 .text-center {
     text-align: center;
 }
 
+.mt-1 {
+    margin-top: 1rem;
+}
+
+.mt-2 {
+    margin-top: 2rem;
+}
+
 .mb-0 {
     margin-bottom: 0;
+}
+
+.mb-2 {
+    margin-bottom: 2rem;
 }
 
 .pl-1 {
@@ -116,4 +126,107 @@ svg {
 .page-description {
     font-size: 14px;
     color: var(--text-light);
+}
+
+.alert {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    width: 400px;
+    padding: .5rem;
+    background-color: var(--accent-bg);
+    border-radius: .5rem;
+    z-index: 1000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+    font-size: 1rem;
+
+    &.error {
+        background-color: var(--error);
+        color: white;
+    }
+}
+
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.pagination-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: var(--standard-border-radius);
+    background-color: var(--accent-bg);
+    cursor: pointer;
+    user-select: none;
+
+    & svg {
+        height: 1.5rem;
+    }
+
+    &:hover {
+        color: var(--accent-hover);
+    }
+
+    &.disabled {
+        color: var(--text-light);
+        cursor: default;
+    }
+}
+
+/*** Tabs ***/
+
+.tab {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+
+    & .tab-btn {
+        background-color: var(--accent-bg);
+        color: var(--accent);
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+            color: var(--accent-hover);
+        }
+
+        &.active {
+            color: var(--accent);
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+    }
+}
+
+.tab-content {
+
+    & .tab-content-item {
+        display: none;
+        padding: 1rem;
+
+        &.active {
+            display: block;
+        }
+    }
+}
+
+/*** Flex ***/
+.flex {
+    display: flex;
+
+    &.row {
+        flex-direction: row;
+    }
+
+    &.column {
+        flex-direction: column;
+    }
+
+    &.center {
+        align-items: center;
+        justify-content: center;
+    }
 }

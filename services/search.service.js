@@ -1,17 +1,28 @@
 const { getUserInfo } = require('./auth.service');
+const { InternalServerError, ValidationError } = require('./exceptions');
+const { spotifyApiHost } = require('../config');
 
 module.exports = {
-  search: async (query, access_token) => {
+  search: async (query, access_token, type = 'track,artist,album', offset = 0, limit = 20) => {
 
     const userInfo = await getUserInfo(access_token);
 
+    if (!query) {
+      return { userInfo, query };
+    }
+
+    console.log(`Searching for tracks, artists or albums... query: ${query}, type: ${type}, offset: ${offset}, limit: ${limit}`);
+
     const options = { headers: { 'Authorization': 'Bearer ' + access_token } };
-    const response = await fetch(`https://api.spotify.com/v1/search?q=${query}&type=track,artist,album`, options);
+    const queryParams = `q=${query}&type=${type}&offset=${offset}&limit=${limit}`;
+    const response = await fetch(`${spotifyApiHost}/v1/search?${queryParams}`, options);
     const { error, tracks, artists, albums } = await response.json();
 
     if (error) {
-      throw new Error(error.message);
+      throw new ValidationError(error.message);
     }
+
+    console.log(tracks.items[0]);
 
     const tracksItems = tracks.items.flatMap(item => {
       return {
@@ -42,28 +53,46 @@ module.exports = {
       }
     });
 
-    const getPageDescription = (offset, total) => {
-      return `Showing ${offset + 1} - ${offset + 20} of ${total}`;
-    };
-
     return {
       query,
       userInfo,
-      tracks: { items: tracksItems, pageDescription: getPageDescription(tracks.offset, tracks.total) },
-      artists: { items: artistsItems, pageDescription: getPageDescription(artists.offset, artists.total) },
-      albums: { items: albumsItems, pageDescription: getPageDescription(albums.offset, albums.total) }
+      tracks: {
+        items: tracksItems,
+        offset: tracks.offset,
+        limit: 20,
+        total: tracks.total,
+        previous: tracks.previous,
+        next: tracks.next
+      },
+      artists: {
+        items: artistsItems,
+        offset: artists.offset,
+        limit: 20,
+        total: artists.total,
+        previous: artists.previous,
+        next: artists.next
+      },
+      albums: {
+        items: albumsItems,
+        offset: albums.offset,
+        limit: 20,
+        total: albums.total,
+        previous: albums.previous,
+        next: albums.next
+      }
     };
   },
+
   getTrack: async (id, access_token) => {
 
     const userInfo = await getUserInfo(access_token);
 
     const options = { headers: { 'Authorization': 'Bearer ' + access_token } };
-    const response = await fetch(`https://api.spotify.com/v1/tracks/${id}`, options);
-    const { error, album, artists, name, preview_url } = await response.json();
+    const response = await fetch(`${spotifyApiHost}/v1/tracks/${id}`, options);
+    const { error, album, artists, name, preview_url, external_urls } = await response.json();
 
     if (error) {
-      throw new Error(error.message);
+      throw new InternalServerError(error.message);
     }
 
     return {
@@ -71,21 +100,23 @@ module.exports = {
       id,
       name,
       preview_url,
+      href: external_urls.spotify,
       artists: artists.map(artist => artist.name).join(' & '),
       album: album.name,
       image: album.images?.find(image => image.width >= 300 && image.width <= 600)?.url
     }
   },
+
   getArtist: async (id, access_token) => {
 
     const userInfo = await getUserInfo(access_token);
 
     const options = { headers: { 'Authorization': 'Bearer ' + access_token } };
-    const response = await fetch(`https://api.spotify.com/v1/artists/${id}`, options);
+    const response = await fetch(`${spotifyApiHost}/v1/artists/${id}`, options);
     const { error, name, external_urls, followers, genres, images } = await response.json();
 
     if (error) {
-      throw new Error(error.message);
+      throw new InternalServerError(error.message);
     }
 
     return {
@@ -98,16 +129,17 @@ module.exports = {
       image: images.find(image => image.width >= 300 && image.width <= 600)?.url
     };
   },
+
   getAlbum: async (id, access_token) => {
 
     const userInfo = await getUserInfo(access_token);
 
     const options = { headers: { 'Authorization': 'Bearer ' + access_token } };
-    const response = await fetch(`https://api.spotify.com/v1/albums/${id}`, options);
+    const response = await fetch(`${spotifyApiHost}/v1/albums/${id}`, options);
     const { error, name, external_urls, artists, images, release_date } = await response.json();
 
     if (error) {
-      throw new Error(error.message);
+      throw new InternalServerError(error.message);
     }
 
     return {
