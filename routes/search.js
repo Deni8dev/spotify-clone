@@ -1,7 +1,7 @@
 const express = require('express');
-const { UnauthorizedError, ValidationError } = require('../services/exceptions');
-const { getUserInfo } = require('../services/auth.service');
 const router = express.Router();
+const { search } = require('../services/search.service');
+const { UnauthorizedError, ValidationError } = require('../services/exceptions');
 
 const getSession = req => {
   const { session } = req.cookies;
@@ -12,21 +12,14 @@ const getSession = req => {
   }
 };
 
-/* GET home page. */
 router.get('/', async (req, res) => {
 
-  const { query } = req.query;
+  const { query, offset, type } = req.query;
 
   try {
-
-    if (!query) {
-      const { access_token } = getSession(req);
-      const userInfo = await getUserInfo(access_token);
-      res.render('index', { userInfo });
-    } else {
-      res.redirect(`/search?query=${query}`);
-    }
-
+    const { access_token } = getSession(req);
+    const results = await search(query, access_token, type, offset);
+    res.render('search', { ...results });
   } catch (e) {
     if (e instanceof UnauthorizedError) {
       console.error('Authentication error:', e);

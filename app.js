@@ -5,6 +5,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
+const loginRouter = require('./routes/login');
+const searchRouter = require('./routes/search');
 const trackRouter = require('./routes/tracks');
 const artistRouter = require('./routes/artists');
 const albumRouter = require('./routes/albums');
@@ -22,6 +24,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/', loginRouter);
+app.use('/search', searchRouter);
 app.use('/tracks', trackRouter);
 app.use('/artists', artistRouter);
 app.use('/albums', albumRouter);
@@ -32,7 +36,7 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

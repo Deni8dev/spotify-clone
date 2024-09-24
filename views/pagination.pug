@@ -1,7 +1,7 @@
-mixin pagination(query, previous, next, offset, limit, total)
+mixin pagination(query, type, previous, next, offset, limit, total)
     div.pagination-container.mt-2.mb-2
         if previous
-            a.pagination-link(href='/?query=' + query + '&offset=' + (offset - limit))
+            a.pagination-link(href='/search?query=' + query + '&type=' + type + '&offset=' + (offset - limit))
                 svg(data-slot='icon' fill='none' stroke-width='1.5' stroke='currentColor' viewbox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' aria-hidden='true')
                     path(stroke-linecap='round' stroke-linejoin='round' d='M15.75 19.5 8.25 12l7.5-7.5')
         else
@@ -12,7 +12,7 @@ mixin pagination(query, previous, next, offset, limit, total)
         div.page-description= 'Showing ' + offset + ' - ' + (offset + limit) + '  of ' + total
 
         if next
-            a.pagination-link(href='/?query=' + query + '&offset=' + (offset + limit))
+            a.pagination-link(href='/search?query=' + query + '&type=' + type + '&offset=' + (offset + limit))
                 svg(data-slot='icon' fill='none' stroke-width='1.5' stroke='currentColor' viewbox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' aria-hidden='true')
                     path(stroke-linecap='round' stroke-linejoin='round' d='m8.25 4.5 7.5 7.5-7.5 7.5')
         else

@@ -2,8 +2,6 @@ extends layout
 
 block content
 
-  form.search-form(action='/', method='get')
+  form.search-form(action='/search', method='get')
     input#queryInput(name='query', placeholder='Song, Artist or Album', value=query)
     button(type='submit') Search
-
-  include results

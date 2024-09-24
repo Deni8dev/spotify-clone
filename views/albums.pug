@@ -1,12 +1,12 @@
 include pagination
 
 if albums
-    +pagination(query, albums.previous, albums.next, albums.offset, albums.limit, albums.total)
+    +pagination(query, type, albums.previous, albums.next, albums.offset, albums.limit, albums.total)
     ul.item-list
       each item in albums.items
           li
               div.item-info.album-info
-                  img(src=item.image, alt=item.name)
+                  img(src=item.image || '/images/na.svg', alt=item.name)
                   div
                       strong
                           a(href='/albums/' + item.id, title='Go to details')= item.name

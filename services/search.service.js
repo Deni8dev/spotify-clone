@@ -2,8 +2,19 @@ const { getUserInfo } = require('./auth.service');
 const { InternalServerError, ValidationError } = require('./exceptions');
 const { spotifyApiHost } = require('../config');
 
+const getResult = ({ items, offset, limit, total, previous, next }) => {
+  return {
+    items,
+    offset,
+    limit,
+    total,
+    previous,
+    next
+  };
+};
+
 module.exports = {
-  search: async (query, access_token, type = 'track,artist,album', offset = 0, limit = 20) => {
+  search: async (query, access_token, type = 'track', offset = 0, limit = 20) => {
 
     const userInfo = await getUserInfo(access_token);
 
@@ -22,64 +33,65 @@ module.exports = {
       throw new ValidationError(error.message);
     }
 
-    console.log(tracks.items[0]);
+    const checkInLibrary = async (ids) => {
+      const response = await fetch(`${spotifyApiHost}/v1/me/tracks/contains?ids=${ids}`, options);
+      return await response.json();
+    }
 
-    const tracksItems = tracks.items.flatMap(item => {
-      return {
-        id: item.id,
-        name: item.name.length > 37 ? item.name.slice(0, 37) + '...' : item.name,
-        preview_url: item.preview_url,
-        artists: item.artists.map(artist => artist.name).slice(0, 2).join(' & '),
-        album: item.album.name.length > 30 ? item.album.name.slice(0, 30) + '...' : item.album.name,
-        image: item.album.images.find(image => image.width === 64)?.url
+    const getTracks = async () => {
+      const tracksWithResultData = {
+        ...getResult(tracks),
+        items: tracks.items.map(item => ({
+          id: item.id,
+          name: item.name.length > 45 ? item.name.slice(0, 45) + '...' : item.name,
+          preview_url: item.preview_url,
+          artists: item.artists.map(artist => artist.name).slice(0, 2).join(' & '),
+          album: item.album.name.length > 45 ? item.album.name.slice(0, 45) + '...' : item.album.name,
+          image: item.album.images.find(image => image.width === 64)?.url
+        }))
       }
-    });
 
-    const artistsItems = artists.items.map(artist => {
-      return {
-        id: artist.id,
-        name: artist.name,
-        followers: artist.followers.total
-      }
-    });
+      const inLibrary = await checkInLibrary(tracksWithResultData.items.map(item => item.id));
 
-    const albumsItems = albums.items.map(album => {
-      return {
-        id: album.id,
-        name: album.name,
-        image: album.images.find(image => image.width === 64)?.url,
-        artists: album.artists.map(artist => artist.name).join(' & '),
-        year: album.release_date.split('-')[0]
+      for (let index = 0; index < tracksWithResultData.items.length; index++) {
+        tracksWithResultData.items[index].inLibrary = inLibrary[index];
       }
-    });
+
+      return tracksWithResultData;
+    }
+
+    const getArtists = () => {
+      return {
+        ...getResult(artists),
+        items: artists.items.map(artist => ({
+          id: artist.id,
+          name: artist.name,
+          followers: artist.followers.total,
+          image: artist.images.find(image => image.width === 64)?.url
+        }))
+      }
+    }
+
+    const getAlbums = () => {
+      return {
+        ...getResult(albums),
+        items: albums.items.map(album => ({
+          id: album.id,
+          name: album.name,
+          image: album.images.find(image => image.width === 64)?.url,
+          artists: album.artists.map(artist => artist.name).join(' & '),
+          year: album.release_date.split('-')[0]
+        }))
+      }
+    }
 
     return {
       query,
+      type,
       userInfo,
-      tracks: {
-        items: tracksItems,
-        offset: tracks.offset,
-        limit: 20,
-        total: tracks.total,
-        previous: tracks.previous,
-        next: tracks.next
-      },
-      artists: {
-        items: artistsItems,
-        offset: artists.offset,
-        limit: 20,
-        total: artists.total,
-        previous: artists.previous,
-        next: artists.next
-      },
-      albums: {
-        items: albumsItems,
-        offset: albums.offset,
-        limit: 20,
-        total: albums.total,
-        previous: albums.previous,
-        next: albums.next
-      }
+      tracks: tracks && await getTracks(),
+      artists: artists && getArtists(),
+      albums: albums && getAlbums()
     };
   },
 
@@ -95,11 +107,47 @@ module.exports = {
       throw new InternalServerError(error.message);
     }
 
+    const inLibrary = await fetch(`${spotifyApiHost}/v1/me/tracks/contains?ids=${id}`, options)
+      .then(res => res.json())
+      .then(body => body[0] === true);
+
     return {
       userInfo,
       id,
       name,
       preview_url,
+      inLibrary,
+      href: external_urls.spotify,
+      artists: artists.map(artist => artist.name).join(' & '),
+      album: album.name,
+      image: album.images?.find(image => image.width >= 300 && image.width <= 600)?.url
+    }
+  },
+
+  updateTrack: async (id, access_token, action) => {
+
+    const userInfo = await getUserInfo(access_token);
+    const options = { headers: { 'Authorization': 'Bearer ' + access_token } };
+
+    if (action === 'add') {
+      await fetch(`${spotifyApiHost}/v1/me/tracks?ids=${id}`, { method: 'PUT', ...options });
+    } else if (action === 'remove') {
+      await fetch(`${spotifyApiHost}/v1/me/tracks?ids=${id}`, { method: 'DELETE', ...options });
+    }
+
+    const response = await fetch(`${spotifyApiHost}/v1/tracks/${id}`, options);
+    const { error, album, artists, name, preview_url, external_urls } = await response.json();
+
+    if (error) {
+      throw new InternalServerError(error.message);
+    }
+
+    return {
+      userInfo,
+      id,
+      name,
+      preview_url,
+      inLibrary: action === 'add',
       href: external_urls.spotify,
       artists: artists.map(artist => artist.name).join(' & '),
       album: album.name,

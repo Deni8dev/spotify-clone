@@ -1,11 +1,12 @@
 include pagination
 
 if artists
-    +pagination(query, artists.previous, artists.next, artists.offset, artists.limit, artists.total)
+    +pagination(query, type, artists.previous, artists.next, artists.offset, artists.limit, artists.total)
     ul.item-list
       each item in artists.items
           li
               div.item-info.artist-info
+                  img(src=src=item.image || '/images/na.svg', alt=item.name)
                   div
                       strong
                           a(href='/artists/' + item.id, title='Go to details')= item.name

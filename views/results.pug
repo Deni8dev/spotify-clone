@@ -1,12 +1,12 @@
 .tab.mt-2
-    button.tab-btn.active(data-tab='tracks') Songs
-    button.tab-btn(data-tab='artists') Artists
-    button.tab-btn(data-tab='albums') Albums
+    button.tab-btn(onclick='window.location.href = "/search?query=' + query + '&type=track"', data-tab='track') Songs
+    button.tab-btn(onclick='window.location.href = "/search?query=' + query + '&type=artist"', data-tab='artist') Artists
+    button.tab-btn(onclick='window.location.href = "/search?query=' + query + '&type=album"', data-tab='album') Albums
 
 .tab-content
-    #tracks.tab-content-item.active
+    #track.tab-content-item
         include tracks
-    #artists.tab-content-item
+    #artist.tab-content-item
         include artists
-    #albums.tab-content-item
+    #album.tab-content-item
         include albums

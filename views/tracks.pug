@@ -1,15 +1,26 @@
 include pagination
 
 if tracks
-    +pagination(query, tracks.previous, tracks.next, tracks.offset, tracks.limit, tracks.total)
+    +pagination(query, type, tracks.previous, tracks.next, tracks.offset, tracks.limit, tracks.total)
     ul.item-list
       each item in tracks.items
-          li
-              div.item-info.track-info
-                  img(src=item.image, alt=item.name)
-                  div
-                      strong
-                          a(href='/tracks/' + item.id, title='Go to details')= item.name
-                      span= item.artists + ' • ' + item.album
-              audio(controls)
-                  source(src=item.preview_url, type='audio/mpeg')
+        li
+            div.item-info.track-info
+              img(src=item.image || '/images/na.svg', alt=item.name)
+              div
+                  strong
+                      a(href='/tracks/' + item.id, title='Go to details')= item.name
+                  span= item.artists + ' • ' + item.album
+
+            if item.inLibrary
+              form(action='/tracks/' + item.id + '?action=remove', method='put')
+                input(type='hidden', name='action', value='remove')
+                button.icon-btn(type='submit', title='Remove from library')
+                    svg.color-accent(data-slot='icon' fill='currentColor' viewbox='0 0 16 16' xmlns='http://www.w3.org/2000/svg' aria-hidden='true')
+                      path(clip-rule='evenodd' fill-rule='evenodd' d='M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm3.844-8.791a.75.75 0 0 0-1.188-.918l-3.7 4.79-1.649-1.833a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.15-.043l4.25-5.5Z')
+            else
+              form(action='/tracks/' + item.id + '?action=add', method='put')
+                input(type='hidden', name='action', value='add')
+                button.icon-btn(type='submit', title='Add to library')
+                    svg.color-text-light(data-slot='icon' fill='none' stroke-width='1.5' stroke='currentColor' viewbox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' aria-hidden='true')
+                      path(stroke-linecap='round' stroke-linejoin='round' d='M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z')

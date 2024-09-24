@@ -12,23 +12,21 @@
   const tabButtons = Array.from($$('.tab .tab-btn'));
   const tabContentItems = Array.from($$('.tab-content .tab-content-item'));
 
-  tabButtons.forEach((tabBtn) => tabBtn.addEventListener('click', openTab));
+  const href = window.location.href;
+  const type = new URLSearchParams(href.split('?')[1]).get('type');
 
-  function openTab(event) {
+  const button = tabButtons.find(btn => btn.dataset.tab === type);
+  if (button) {
+    button.classList.add('active');
+  } else {
+    tabButtons[0]?.classList.add('active');
+  }
 
-    const { target: tabBtn } = event;
-    const { dataset } = tabBtn;
-
-    console.log('Opening tab', dataset.tab);
-
-    tabButtons.forEach((btn) => btn.classList.remove('active'));
-    tabBtn.classList.add('active');
-
-    tabContentItems.forEach((item) => item.classList.remove('active'));
-    tabContentItems
-      .find((child) => child.id === dataset.tab)
-      .classList
-      .add('active');
+  const contentItem = tabContentItems.find(item => item.id === type);
+  if (contentItem) {
+    contentItem.classList.add('active');
+  } else {
+    tabContentItems[0]?.classList.add('active');
   }
 
 })();
